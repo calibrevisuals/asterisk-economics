@@ -20,6 +20,6 @@ jobs:
           git add videos.json sources index.html
           if git diff --cached --quiet; then echo "no change"; exit 0; fi
           git config user.name "asterisk-economics-bot"
-          git config user.email "hello@asteriskeconomics.com"
+          git config user.email "contact@asteriskeconomics.com"
           git commit -m "Update video list and titles"
           git push
