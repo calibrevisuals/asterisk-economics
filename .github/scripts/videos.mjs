@@ -22,7 +22,15 @@ for (const e of xml.split('<entry>').slice(1)) {
     slug: (desc.match(/asteriskeconomics\.com\/sources\/([a-z0-9-]+)/) || [])[1] || null,
   });
 }
-out.sort((a, b) => b.published.localeCompare(a.published));
 if (!out.length) { console.log('feed empty, keeping the old file'); process.exit(0); }
-fs.writeFileSync('videos.json', JSON.stringify(out.slice(0, 10), null, 2) + '\n');
+// The feed only holds the 15 newest uploads (Shorts included), so older long videos drop out of it.
+// Keep every video from the old file that is not in the feed, as long as YouTube still shows it publicly.
+const old = fs.existsSync('videos.json') ? JSON.parse(fs.readFileSync('videos.json', 'utf8')) : [];
+for (const v of old) {
+  if (out.some((x) => x.id === v.id)) continue;
+  const r = await fetch(`https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=${v.id}`).catch(() => null);
+  if (r && r.ok) out.push(v);
+}
+out.sort((a, b) => b.published.localeCompare(a.published));
+fs.writeFileSync('videos.json', JSON.stringify(out.slice(0, 60), null, 2) + '\n');
 console.log(out.length, 'videos');
